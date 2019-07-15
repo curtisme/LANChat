@@ -1,0 +1,73 @@
+<html>
+<head>
+<style>
+body {
+    font-size:30px;
+}
+#chatLog {
+    height:500px;
+    overflow-y:scroll;
+}
+#message {
+    font-size:30px;
+    padding:5px;
+    width:100%;
+    margin-top:5px;
+}
+</style>
+<script src="requests.js"></script>
+</head>
+<body>
+    <div id = "chatLog"></div>
+    <div id = "messageField">
+        <input id="message"></input>
+    </div>
+<script>
+function getNow() {
+    var now = new Date()
+    return now.getHours() + ":" +
+        now.getMinutes() + ":" +
+        now.getSeconds()
+}
+
+function sendMessage() {
+    var messageField = document.getElementById("message")
+    var chatLog = document.getElementById("chatLog")
+    var message = messageField.value
+    if (message.length < 1)
+        return
+    post("/send_message.php", {name, message, time: getNow()}, function(response) {
+	})
+	chatLog.innerHTML +=
+		"<b>" + name + ":</b> " +
+		message + "</br>"
+    chatLog.scrollTop = 10000
+    messageField.value = ""
+}
+
+var name = prompt("Hello! What is your name?", "anon")
+var lastMessageTime = '0:00'
+setInterval(function() {
+	var params = {time: lastMessageTime, name}
+    var chatLog = document.getElementById("chatLog")
+	post("/get_messages.php", params, function(response) {
+		var messages = JSON.parse(response)
+		messages.forEach(function (el) {
+			chatLog.innerHTML +=
+				"<b>" + el["NAME"] + ":</b> " +
+				el["MESSAGE"] + "</br>"
+		})
+        if (messages.length > 0) {
+			lastMessageTime = messages[messages.length - 1]["POST_TIME"]
+            chatLog.scrollTop = 10000
+        }
+	})
+},5000)
+document.getElementById("message").addEventListener("keydown", function(e) {
+    if (e.key === "Enter")
+        sendMessage()
+})
+document.getElementById("message").focus()
+</script>
+</body>
+</html>
